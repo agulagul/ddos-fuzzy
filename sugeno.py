@@ -2,19 +2,27 @@ from collections import namedtuple
 
 
 def derajat_length(packet_length):
-    length = namedtuple('Length', ['pendek', 'normal', 'panjang'])
-    if packet_length <= 60:
+    length = namedtuple('Length',['pendek','normal','panjang'])
+    if (packet_length <= 60):
         length.pendek = 1
         length.normal = 0
         length.panjang = 0
-    elif packet_length > 60 & packet_length < 90:
+    elif (packet_length > 60 and packet_length < 90):
         length.pendek = (90 - packet_length) / (90 - 60)
-        length.normal = (packet_length - 60) / (90 - 60)
+        if length.pendek < 0:
+            length.pendek = 0
+        length.normal = (packet_length - 60 ) / (90 - 60)
+        if length.normal < 0:
+            length.normal = 0
         length.panjang = 0
-    elif packet_length >= 90 & packet_length < 120:
+    elif (packet_length >= 90 and packet_length < 120):
         length.pendek = 0
         length.normal = (120 - packet_length) / (120 - 90)
+        if length.normal < 0:
+            length.normal = 0
         length.panjang = (packet_length - 90) / (120 - 90)
+        if length.panjang < 0:
+            length.panjang = 0
     else:
         length.pendek = 0
         length.normal = 0
@@ -23,27 +31,35 @@ def derajat_length(packet_length):
 
 
 def derajat_source(source_count):
-    source = namedtuple('Source', ['single', 'multi'])
-    if source_count <= 1:
+    source = namedtuple('Source',['single','multi'])
+    if(source_count <= 1):
         source.single = 1
         source.multi = 0
-    elif source_count > 1 & source_count < 3:
+    elif(source_count > 1 and source_count < 3):
         source.single = (3 - source_count) / (3 - 1)
+        if source.single < 0:
+            source.single = 0
         source.multi = (source_count - 1) / (3 - 1)
+        if source.multi < 0:
+            source.multi = 0
     else:
         source.single = 0
-        source.multi = 0
+        source.multi = 1
     return source
 
 
 def derajat_jmldata(data_count):
     jmldata = namedtuple('Count',['sedikit','banyak'])
-    if data_count <= 10:
+    if(data_count <= 10):
         jmldata.sedikit = 1
         jmldata.banyak = 0
-    elif data_count > 10 & data_count < 50:
+    elif(data_count > 10 and data_count < 50):
         jmldata.sedikit = (50 - data_count) / (50 - 10)
+        if jmldata.sedikit < 0:
+            jmldata.sedikit = 0
         jmldata.banyak = (data_count - 10) / (50 -10)
+        if jmldata.banyak < 0:
+            jmldata.banyak = 0
     else:
         jmldata.sedikit = 0
         jmldata.banyak = 1
@@ -52,10 +68,10 @@ def derajat_jmldata(data_count):
 
 def derajat_POD(z):
     kategori = namedtuple('Kategori',['NOT_POD','POD'])
-    if z <= 0.4:
+    if(z <= 0.4):
         kategori.NOT_POD = 1
         kategori.POD = 0
-    elif z > 0.4 & z < 0.6:
+    elif(z > 0.4 and z < 0.6):
         kategori.NOT_POD = (50 - z) / (50 - 10)
         kategori.POD = (z - 10) / (50 -10)
     else:
@@ -144,12 +160,21 @@ def inferensi(length, source, jmldata):
     alfa.append(a11)
     z.append(z11)
 
-    ## RULE 12. IF jmldata = banyak AND source = multi AND length = pendek THEN kategori = POD
-    a12 = min(jmldata.banyak, source.multi, length.pendek)
+    ## RULE 12. IF jmldata = banyak AND source = multi AND length = panjang THEN kategori = POD
+    a12 = min(jmldata.banyak, source.multi, length.panjang)
     z12 = z_POD(a12)
     alfa.append(a12)
     z.append(z12)
 
     return alfa, z
+
+
+def defuzzyikasi(alfa, z):
+    alfa_z = []
+    for i in range(len(alfa)):
+        alfa_z.append(alfa[i] * z[i])
+
+    Z = sum(alfa_z) / sum(alfa)
+    return Z
 
 
